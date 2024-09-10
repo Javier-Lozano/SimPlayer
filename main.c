@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include "SDL.h"
 #include "player.h"
+#include "visual.h"
 
 #define WINDOW_WIDTH  (800)
 #define WINDOW_HEIGHT (600)
@@ -16,7 +17,7 @@ int main( int argc, char **argv)
 
 	// TODO: Load files from command line
 
-	if (SDLInit(&window, &renderer) == 0 || PlayerInit(&player, 2, 44100, 1024) == 0)
+	if (!SDLInit(&window, &renderer) || !PlayerInit(&player, 2, 44100, 1024) || !VisualInit(renderer))
 	{
 		return 1;
 	}
@@ -25,15 +26,12 @@ int main( int argc, char **argv)
 	{
 		// Update
 		PlayerUpdate(&player);
-
 		// Draw
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-		SDL_RenderClear(renderer);
-		PlayerDraw(&player, renderer);
-		SDL_RenderPresent(renderer);
+		PlayerDraw(renderer, window, &player);
 	}
 
 	PlayerClose(&player);
+	VisualClose();
 	SDLClose(&window, &renderer);
 
 	printf("\nSEE YOU SPACE COWBOY\n");
@@ -46,6 +44,11 @@ static bool SDLInit(SDL_Window **window, SDL_Renderer **renderer)
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
 	{
 		fprintf(stderr, "Error: Couldn't init SDL. %s\n", SDL_GetError());
+		return false;
+	}
+	if (TTF_Init() == -1)
+	{
+		fprintf(stderr, "Error: Couldn't init SDL2_ttf. %s\n", TTF_GetError());
 		return false;
 	}
 	*window = SDL_CreateWindow("Sim(ple) Music Player SDL", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
@@ -66,6 +69,7 @@ static bool SDLInit(SDL_Window **window, SDL_Renderer **renderer)
 
 static void SDLClose(SDL_Window **window, SDL_Renderer **renderer)
 {
+	TTF_Quit();
 	SDL_DestroyRenderer(*renderer);
 	SDL_DestroyWindow(*window);
 	SDL_Quit();

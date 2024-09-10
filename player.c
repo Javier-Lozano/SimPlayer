@@ -1,10 +1,9 @@
 #include "player.h"
+#include "SDL_ttf.h"
 
-static SDL_AudioDeviceID  g_AudioDeviceID;
 static float *g_StreamCopy;
 
 static void callback(void *userdata, Uint8* stream, int len);
-//static Uint8 LoadTrack(const char *path, Player *player);
 
 bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples)
 {
@@ -18,15 +17,15 @@ bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples)
 	};
 
 	// Open Audio Device
-	g_AudioDeviceID = SDL_OpenAudioDevice(NULL, 0, &spec, &player->spec, 0);
-	if (g_AudioDeviceID == 0)
+	player->device_id = SDL_OpenAudioDevice(NULL, 0, &spec, &player->spec, 0);
+	if (player->device_id == 0)
 	{
 		fprintf(stderr, "Error: Couldn't open audio device. %s.\n", SDL_GetError());
 		return false;
 	}
 
 	// Unpause Audio Device
-	SDL_PauseAudioDevice(g_AudioDeviceID, 0);
+	SDL_PauseAudioDevice(player->device_id, 0);
 
 	if (!TrackListInit(&player->track_list))
 	{
@@ -46,7 +45,7 @@ bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples)
 
 void PlayerClose(Player *player)
 {
-	SDL_CloseAudioDevice(g_AudioDeviceID);
+	SDL_CloseAudioDevice(player->device_id);
 	TrackListClose(&player->track_list);
 	SDL_free(g_StreamCopy);
 }
@@ -79,23 +78,28 @@ void PlayerUpdate(Player *player)
 					case SDLK_RETURN:
 					case SDLK_SPACE:
 						player->is_paused = !player->is_paused;
-						SDL_PauseAudioDevice(g_AudioDeviceID, player->is_paused);
+						SDL_PauseAudioDevice(player->device_id, player->is_paused);
 						break;
 					case SDLK_BACKSPACE:
 				}
+				break;
+			case SDL_WINDOWEVENT:
 				break;
 		}
 	}
 
 }
 
-void PlayerDraw(Player *player, SDL_Renderer *renderer)
+
+void PlayerDraw(SDL_Renderer *renderer, SDL_Window *window, Player *player)
 {
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF);
+	// Clear Screen
+	SDL_SetRenderDrawColor(renderer, 0x40, 0, 0, 0xFF);
 	SDL_RenderClear(renderer);
 
-	// Draw stuff
+	VisualMain(window, renderer, player, g_StreamCopy);
 
+	// Present
 	SDL_RenderPresent(renderer);
 }
 
@@ -117,6 +121,7 @@ static void callback(void *userdata, Uint8* stream, int len)
 	if (step <= 0)
 	{
 		player->current = player->current->next;
+		player->position = 0;
 	}
 	else
 	{
