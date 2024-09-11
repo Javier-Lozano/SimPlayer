@@ -9,6 +9,7 @@ void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, flo
 	const float amplitude = viewport.h / 4;
 	const int   samples   = player->spec.samples;
 	const int   channels  = player->spec.channels;
+	const int   length    = samples * channels;
 
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderDrawLine(renderer, 0, viewport.h / 2, viewport.w, viewport.h / 2);
@@ -19,28 +20,23 @@ void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, flo
 
 	SDL_SetRenderDrawColor(renderer, 0, 0xFF, 0, 0xFF);
 	SDL_LockAudioDevice(player->device_id);
-	for(int i = 0; i < (samples * channels) - 2; i++)
+	for(int i = 0; i < samples - 2; i ++)
 	{
-		//SDL_FPoint p1;
-		//SDL_FPoint p2;
+		int l_index = (i * channels);
+		int r_index = l_index + 1;
 
-		//p1.x = ((float)i * (float)viewport.w) / (float)samples;
-		//p1.y = (stream[i]) ? -stream[i] * amplitude : 0;
+		float x1 = (float)i       * (float)viewport.w / (float)samples;
+		float x2 = (float)(i + 1) * (float)viewport.w / (float)samples;
 
-		//p2.x = ((float)(i + 1) * (float)viewport.w) / (float)samples;
-		//p2.y = (stream[i + 2]) ? -stream[i + 2] * amplitude : 0;
+		float l_y1 = (-stream[l_index]     * amplitude) + amplitude;
+		float l_y2 = (-stream[l_index + 2] * amplitude) + amplitude;
 
-		printf("sample: %d ", i);
-		if (i % channels == 0) // Left Channels
-		{
-			//SDL_RenderDrawLineF(renderer, p1.x, p1.y + amplitude, p2.x, p2.y + amplitude);
-			printf("Left: %f ", stream[i]);
-		}
-		else // Right Channels
-		{
-			//SDL_RenderDrawLineF(renderer, p1.x, p1.y + (amplitude * 3), p2.x, p2.y + (amplitude * 3));
-			printf("Right: %f\n", stream[i]);
-		}
+		float r_y1 = (-stream[r_index]     * amplitude) + (amplitude * 3);
+		float r_y2 = (-stream[r_index + 2] * amplitude) + (amplitude * 3);
+
+		SDL_RenderDrawLineF(renderer, x1, l_y1, x2, l_y2);
+		SDL_RenderDrawLineF(renderer, x1, r_y1, x2, r_y2);
 	}
 	SDL_UnlockAudioDevice(player->device_id);
 }
+
