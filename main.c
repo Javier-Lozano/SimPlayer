@@ -17,7 +17,7 @@ int main( int argc, char **argv)
 
 	// TODO: Load files from command line
 
-	if (!SDLInit(&window, &renderer) || !PlayerInit(&player, 2, 44100, 1024) || !VisualInit(renderer))
+	if (!SDLInit(&window, &renderer) || !PlayerInit(renderer, &player, 2, 44100, 1024))
 	{
 		return 1;
 	}
@@ -31,7 +31,6 @@ int main( int argc, char **argv)
 	}
 
 	PlayerClose(&player);
-	VisualClose();
 	SDLClose(&window, &renderer);
 
 	printf("\nSEE YOU SPACE COWBOY\n");

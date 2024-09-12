@@ -100,75 +100,59 @@ bool TrackListInsert(const char *path, TrackList *track_list, SDL_AudioSpec *tar
 	return true;
 }
 
-static bool LoadTrack(const char *path, Track *track, SDL_AudioSpec *target_spec)
+static bool LoadTrack(const char *path, Track *track, SDL_AudioSpec *dst_spec)
 {
-	const int bytes     = SDL_AUDIO_BITSIZE(target_spec->format) / 8;
-	const int channels  = target_spec->channels;
-	const int frequency = target_spec->freq;
-
-	SDL_AudioStream *audio_stream;
-	int              stream_length;
-
-	Uint8           *wav_buffer;
-	Uint32           wav_length;
-	SDL_AudioSpec    wav_spec;
+	SDL_AudioStream *stream;
+	Uint8           *buffer;
+	Uint32           length;
+	SDL_AudioSpec    spec;
 
 	// Load Wav
-	if (SDL_LoadWAV(path, &wav_spec, &wav_buffer, &wav_length) == NULL)
+	if (SDL_LoadWAV(path, &spec, &buffer, &length) == NULL)
 	{
 		fprintf(stderr, "Error: Couldn't load WAV. %s\n", SDL_GetError());
-		return 0;
+		return false;
 	}
-	printf("Length Check 1:%d\n", wav_length);
 
-	audio_stream = SDL_NewAudioStream(wav_spec.format, wav_spec.channels, wav_spec.freq, target_spec->format, channels, frequency);
-	if (audio_stream == NULL)
+	stream = SDL_NewAudioStream(spec.format, spec.channels, spec.freq, dst_spec->format, dst_spec->channels, dst_spec->freq);
+	if (stream == NULL)
 	{
 		fprintf(stderr, "Couldn't create audio stream. %s.\n", SDL_GetError());
-		goto load_track_failure;
-	}
-	if (SDL_AudioStreamPut(audio_stream, wav_buffer, wav_length) == -1)
-	{
-		fprintf(stderr, "Couldn't insert data into audio stream. %s.\n", SDL_GetError());
-		goto load_track_failure;
-	}
-	if (SDL_AudioStreamFlush(audio_stream) == -1)
-	{
-		fprintf(stderr, "Couldn't flush audio stream. %s.\n", SDL_GetError());
-		goto load_track_failure;
+		SDL_FreeWAV(buffer);
+		return false;
 	}
 
-	stream_length = SDL_AudioStreamAvailable(audio_stream);
-	printf("Length Check 2:%d\n", stream_length);
+	track->stream = stream;
+	track->buffer = buffer;
+	track->length = length;
+	track->spec   = spec;
 
-	track->buffer = (Uint8*)SDL_malloc(stream_length);
-	if (track->buffer == NULL)
-	{
-		fprintf(stderr, "Error: It seems you ran out of memory! =(\n");
-		goto load_track_failure;
-	}
-	track->length = stream_length;
-
-	// Get Converted audio
-	int count = SDL_AudioStreamGet(audio_stream, track->buffer, stream_length);
-	printf("Length Check 3:%d\n", count);
-	if (count == -1)
-	{
-		fprintf(stderr, "Couldn't get data from audio stream. %s.\n", SDL_GetError());
-		goto load_track_failure;
-	}
-
-	SDL_FreeAudioStream(audio_stream);
-	SDL_FreeWAV(wav_buffer);
-
-	printf("LoadTrack success! \n");
 	return true;
+}
 
-load_track_failure:
-	SDL_FreeAudioStream(audio_stream);
-	SDL_FreeWAV(wav_buffer);
-	printf("LoadTrack Failed\n");
-	return false;
+int TrackProcessAudio(Track *track, int position, SDL_AudioSpec *player_spec, Uint8 *output)
+{
+	const int samples  = player_spec->samples;
+	const int channels = track->spec.channels;
+	const int bytes    = SDL_AUDIO_BITSIZE(track->spec.format) / 8;
+	const int chunk    = samples * channels * bytes;
+
+	int step = (position + chunk > track->length) ? track->length - position : chunk;
+	//printf("Step %d (bytes: %d samples: %d channels:%d)\n", step, bytes, samples, channels);
+
+	// Get
+	int available = SDL_AudioStreamAvailable(track->stream);
+	//printf("AudioStream Available: %d\n", available);
+	SDL_AudioStreamGet(track->stream, output, available);
+
+	if (step > 0)
+	{
+		// Put
+		SDL_AudioStreamPut(track->stream, track->buffer + position, step);
+		SDL_AudioStreamFlush(track->stream);
+	}
+
+	return step;
 }
 
 static void PrintTrackList(TrackList *track_list)

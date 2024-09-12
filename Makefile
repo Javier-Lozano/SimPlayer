@@ -9,7 +9,7 @@ OBJS = main.o player.o track_list.o visual.o visual/demo.o visual/waves.o
 all: $(OBJS)
 	$(CC) $(OPT) $(OBJS) -o SimPlayer $(LIBS)
 
-debug: OPT=-g -Wall -Werror
+debug: OPT=-g -Wall 
 debug: all
 
 main.o: main.c player.h visual.h

@@ -21,7 +21,7 @@ void VisualDemo(SDL_Window *window, SDL_Renderer *renderer, Player *player, floa
 	SDL_RenderGetViewport(renderer, &viewport);
 	SDL_FPoint center;
 
-	float radius = viewport.w / 4;
+	float radius = viewport.h / 2;
 
 	// Do once
 	if (!do_once)

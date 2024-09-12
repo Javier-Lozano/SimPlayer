@@ -5,7 +5,7 @@ static float *g_StreamCopy;
 
 static void callback(void *userdata, Uint8* stream, int len);
 
-bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples)
+bool PlayerInit(SDL_Renderer *renderer, Player *player, Uint8 channels, int sampling_rate, int samples)
 {
 	SDL_AudioSpec spec = {
 		.freq     = sampling_rate,
@@ -36,6 +36,12 @@ bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples)
 	// Allocate Stream Copy
 	g_StreamCopy = (float*)SDL_malloc(sizeof(float) * samples * channels);
 
+	// Initialize Visual
+	if (!VisualInit(renderer))
+	{
+		return false;
+	}
+
 	player->is_running = true;
 	player->is_paused  = false;
 	player->position   = 0;
@@ -45,6 +51,7 @@ bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples)
 
 void PlayerClose(Player *player)
 {
+	VisualClose();
 	SDL_CloseAudioDevice(player->device_id);
 	TrackListClose(&player->track_list);
 	SDL_free(g_StreamCopy);
@@ -115,22 +122,32 @@ static void callback(void *userdata, Uint8* stream, int len)
 	}
 
 	// Play Track
-	Track *track = player->current->track;
-	int step = (player->position + len > track->length) ? track->length - player->position : len;
+	int step = TrackProcessAudio(player->current->track, player->position, &player->spec, stream);
+	player->position += step;
 
-	if (step <= 0)
+	if (step == 0)
 	{
 		player->current = player->current->next;
 		player->position = 0;
 	}
-	else
-	{
-		// Output stream
-		SDL_memcpy(stream, track->buffer + player->position, step);
-		// Copy Stream
-		SDL_memcpy(g_StreamCopy, stream, len);
 
-		player->position += step;
-	}
+	// Copy
+	SDL_memcpy(g_StreamCopy, stream, len);
+//	Uint8 *s = (Uint8*)g_StreamCopy;
+//	for (int i = 0; i < len / 4; i++)
+//	{
+//		printf("Stream:        Sample(%d)\t", i);
+//		for (int j = 0; j < 4; j++)
+//		{
+//			printf("%02X ", stream[i + j]);
+//		}
+//		printf(" | ");
+//		printf("Stream: (Copy) Sample(%d)\t", i);
+//		for (int j = 0; j < 4; j++)
+//		{
+//			printf("%02X ", s[i + j]);
+//		}
+//		printf("\n");
+//	}
 }
 

@@ -5,7 +5,7 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-#define BORDER (32)
+#define BORDER (16)
 #define V_PI   (3.1416f)
 #define V_2PI  (2 * V_PI)
 
@@ -19,6 +19,7 @@ void VisualClose();
 void VisualMain(SDL_Window *window, SDL_Renderer *renderer, Player *player, float *stream);
 void VisualDemo(SDL_Window *window, SDL_Renderer *renderer, Player *player, float radians);
 void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, float *stream);
+void VisualBar(SDL_Window *window, SDL_Renderer *renderer, Player *player, float radians);
 
 #endif // _VISUAL_H_
 

@@ -6,17 +6,25 @@ void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, flo
 	SDL_Rect viewport;
 	SDL_RenderGetViewport(renderer, &viewport);
 
-	const float amplitude = viewport.h / 4;
 	const int   samples   = player->spec.samples;
 	const int   channels  = player->spec.channels;
 	const int   length    = samples * channels;
+	float amplitude = viewport.h / 2 / channels;
 
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderDrawLine(renderer, 0, viewport.h / 2, viewport.w, viewport.h / 2);
+	for(int i = 1; i < channels; i++)
+	{
+		SDL_RenderDrawLine(renderer, 0, viewport.h / (i * channels), viewport.w, viewport.h / (i * channels));
+	}
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0xFF, 0xFF);
-	SDL_RenderDrawLine(renderer, 0, amplitude, viewport.w, amplitude);
-	SDL_RenderDrawLine(renderer, 0, amplitude * 3, viewport.w, amplitude * 3);
+	for(int i = 1; i < channels * 2; i++)
+	{
+		if (i % 2 == 1)
+		{
+			SDL_RenderDrawLine(renderer, 0, amplitude * i, viewport.w, amplitude * i);
+		}
+	}
 
 	SDL_SetRenderDrawColor(renderer, 0, 0xFF, 0, 0xFF);
 	SDL_LockAudioDevice(player->device_id);

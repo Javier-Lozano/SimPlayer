@@ -7,8 +7,10 @@
 #define TRACK_LIST_CHUNK (256)
 
 typedef struct track_st {
-	Uint8 *buffer; // converted samples in bytes
-	Uint32 length; // buffer length
+	SDL_AudioStream *stream;
+	SDL_AudioSpec    spec;
+	Uint32           length; // In samples
+	Uint8           *buffer; 
 } Track;
 
 typedef struct track_node_st { // Linked List nodes
@@ -29,6 +31,8 @@ typedef struct track_list_st {
 bool TrackListInit(TrackList *track_list);
 void TrackListClose(TrackList *track_list);
 bool TrackListInsert(const char *path, TrackList *track_list, SDL_AudioSpec *target_spec);
+
+int TrackProcessAudio(Track *track, int position, SDL_AudioSpec *player_spec, Uint8 *output);
 
 #endif // _TRACK_LIST_H_
 

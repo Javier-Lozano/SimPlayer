@@ -16,7 +16,7 @@ typedef struct player_st {
 	SDL_AudioDeviceID device_id;
 } Player;
 
-bool PlayerInit(Player *player, Uint8 channels, int sampling_rate, int samples);
+bool PlayerInit(SDL_Renderer *renderer, Player *player, Uint8 channels, int sampling_rate, int samples);
 void PlayerClose(Player *player);
 
 void PlayerUpdate(Player *player);
