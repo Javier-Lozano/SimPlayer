@@ -1,7 +1,7 @@
 #include "player.h"
 #include "SDL_ttf.h"
 
-static float *g_StreamCopy;
+static Uint8 *g_StreamCopy;
 
 static void callback(void *userdata, Uint8* stream, int len);
 
@@ -9,7 +9,7 @@ bool PlayerInit(SDL_Renderer *renderer, Player *player, Uint8 channels, int samp
 {
 	SDL_AudioSpec spec = {
 		.freq     = sampling_rate,
-		.format   = AUDIO_F32,
+		.format   = AUDIO_S32,
 		.channels = channels,
 		.callback = callback,
 		.samples  = samples,
@@ -34,7 +34,7 @@ bool PlayerInit(SDL_Renderer *renderer, Player *player, Uint8 channels, int samp
 	}
 
 	// Allocate Stream Copy
-	g_StreamCopy = (float*)SDL_malloc(sizeof(float) * samples * channels);
+	g_StreamCopy = (Uint8*)SDL_malloc(sizeof(Sint32) * samples * channels);
 
 	// Initialize Visual
 	if (!VisualInit(renderer))
@@ -88,6 +88,7 @@ void PlayerUpdate(Player *player)
 						SDL_PauseAudioDevice(player->device_id, player->is_paused);
 						break;
 					case SDLK_BACKSPACE:
+						break;
 				}
 				break;
 			case SDL_WINDOWEVENT:
@@ -104,7 +105,7 @@ void PlayerDraw(SDL_Renderer *renderer, SDL_Window *window, Player *player)
 	SDL_SetRenderDrawColor(renderer, 0x40, 0, 0, 0xFF);
 	SDL_RenderClear(renderer);
 
-	VisualMain(window, renderer, player, g_StreamCopy);
+	VisualMain(window, renderer, player, (Sint32*)g_StreamCopy);
 
 	// Present
 	SDL_RenderPresent(renderer);
@@ -133,21 +134,5 @@ static void callback(void *userdata, Uint8* stream, int len)
 
 	// Copy
 	SDL_memcpy(g_StreamCopy, stream, len);
-//	Uint8 *s = (Uint8*)g_StreamCopy;
-//	for (int i = 0; i < len / 4; i++)
-//	{
-//		printf("Stream:        Sample(%d)\t", i);
-//		for (int j = 0; j < 4; j++)
-//		{
-//			printf("%02X ", stream[i + j]);
-//		}
-//		printf(" | ");
-//		printf("Stream: (Copy) Sample(%d)\t", i);
-//		for (int j = 0; j < 4; j++)
-//		{
-//			printf("%02X ", s[i + j]);
-//		}
-//		printf("\n");
-//	}
 }
 

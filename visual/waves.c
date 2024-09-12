@@ -1,7 +1,8 @@
+#include <limits.h>
 #include "../visual.h"
 #include "../player.h"
 
-void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, float *stream)
+void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, Sint32 *stream)
 {
 	SDL_Rect viewport;
 	SDL_RenderGetViewport(renderer, &viewport);
@@ -36,11 +37,20 @@ void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, flo
 		float x1 = (float)i       * (float)viewport.w / (float)samples;
 		float x2 = (float)(i + 1) * (float)viewport.w / (float)samples;
 
-		float l_y1 = (-stream[l_index]     * amplitude) + amplitude;
-		float l_y2 = (-stream[l_index + 2] * amplitude) + amplitude;
+		double l_v1 = (double)stream[l_index] / (double) INT_MAX;
+		double l_v2 = (double)stream[l_index + 2] / (double) INT_MAX;
 
-		float r_y1 = (-stream[r_index]     * amplitude) + (amplitude * 3);
-		float r_y2 = (-stream[r_index + 2] * amplitude) + (amplitude * 3);
+		double l_y1 = -(l_v1 * amplitude) + amplitude;
+		double l_y2 = -(l_v2 * amplitude) + amplitude;
+
+		double r_v1 = (double)stream[r_index] / (double) INT_MAX;
+		double r_v2 = (double)stream[r_index + 2] / (double) INT_MAX;
+
+		double r_y1 = -(r_v1 * amplitude) + (amplitude * 3);
+		double r_y2 = -(r_v2 * amplitude) + (amplitude * 3);
+
+		//printf("%f %f %d\n",l_y1, l_y2, INT_MAX);
+		//printf("%f %f %d\n",r_y1, r_y2, INT_MAX);
 
 		SDL_RenderDrawLineF(renderer, x1, l_y1, x2, l_y2);
 		SDL_RenderDrawLineF(renderer, x1, r_y1, x2, r_y2);

@@ -21,7 +21,7 @@ void VisualClose()
 }
 
 
-void VisualMain(SDL_Window *window, SDL_Renderer *renderer, Player *player, float *stream)
+void VisualMain(SDL_Window *window, SDL_Renderer *renderer, Player *player, Sint32 *stream)
 {
 	static float radians;
 	const  float step = (V_2PI / 360.0f);

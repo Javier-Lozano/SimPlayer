@@ -142,7 +142,6 @@ int TrackProcessAudio(Track *track, int position, SDL_AudioSpec *player_spec, Ui
 
 	// Get
 	int available = SDL_AudioStreamAvailable(track->stream);
-	//printf("AudioStream Available: %d\n", available);
 	SDL_AudioStreamGet(track->stream, output, available);
 
 	if (step > 0)

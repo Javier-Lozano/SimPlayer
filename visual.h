@@ -16,9 +16,9 @@ extern TTF_Font *g_Font;
 bool VisualInit(SDL_Renderer *renderer);
 void VisualClose();
 
-void VisualMain(SDL_Window *window, SDL_Renderer *renderer, Player *player, float *stream);
+void VisualMain(SDL_Window *window, SDL_Renderer *renderer, Player *player, Sint32 *stream);
 void VisualDemo(SDL_Window *window, SDL_Renderer *renderer, Player *player, float radians);
-void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, float *stream);
+void VisualWaves(SDL_Window *window, SDL_Renderer *renderer, Player *player, Sint32 *stream);
 void VisualBar(SDL_Window *window, SDL_Renderer *renderer, Player *player, float radians);
 
 #endif // _VISUAL_H_
